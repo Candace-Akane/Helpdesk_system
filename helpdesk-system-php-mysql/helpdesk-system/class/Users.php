@@ -2,19 +2,22 @@
 class Users extends Database { 
 	private $userTable = 'hd_users';
 	private $dbConnect = false;
-	public function __construct(){		
+
+	public function __construct() {		
         $this->dbConnect = $this->dbConnect();
     }	
-	public function isLoggedIn () {
+
+	public function isLoggedIn() {
 		if(isset($_SESSION["userid"])) {
 			return true; 			
 		} else {
 			return false;
 		}
 	}
-	public function login(){		
+
+	public function login() {		
 		$errorMessage = '';
-		if(!empty($_POST["login"]) && $_POST["email"]!=''&& $_POST["password"]!='') {	
+		if(!empty($_POST["login"]) && $_POST["email"]!='' && $_POST["password"]!='') {	
 			$email = $_POST['email'];
 			$password = $_POST['password'];
 			$sqlQuery = "SELECT * FROM ".$this->userTable." 
@@ -33,11 +36,12 @@ class Users extends Database {
 			} else {		
 				$errorMessage = "Invalid login!";		 
 			}
-		} else if(!empty($_POST["login"])){
+		} else if(!empty($_POST["login"])) {
 			$errorMessage = "Enter Both user and password!";	
 		}
 		return $errorMessage; 		
 	}
+
 	public function getUserInfo() {
 		if(!empty($_SESSION["userid"])) {
 			$sqlQuery = "SELECT * FROM ".$this->userTable." 
@@ -47,6 +51,7 @@ class Users extends Database {
 			return $userDetails;
 		}		
 	}
+
 	public function getColoumn($id, $column) {     
         $sqlQuery = "SELECT * FROM ".$this->userTable." 
 			WHERE id ='".$id."'";
@@ -54,41 +59,42 @@ class Users extends Database {
 		$userDetails = mysqli_fetch_assoc($result);
 		return $userDetails[$column];       
     }
-	
-	
-	public function listUser(){
-			 			 
-		$sqlQuery = "SELECT id, name, email, create_date, user_type, status 
+
+	public function listUser() {			 
+		$sqlQuery = "SELECT id, name, email, department, create_date, user_type, status 
 			FROM ".$this->userTable;
 			
-		if(!empty($_POST["search"]["value"])){
-			$sqlQuery .= ' (id LIKE "%'.$_POST["search"]["value"].'%" ';					
+		if(!empty($_POST["search"]["value"])) {
+			$sqlQuery .= ' WHERE (id LIKE "%'.$_POST["search"]["value"].'%" ';					
 			$sqlQuery .= ' OR name LIKE "%'.$_POST["search"]["value"].'%" ';
-			$sqlQuery .= ' OR status LIKE "%'.$_POST["search"]["value"].'%" ';					
+			$sqlQuery .= ' OR email LIKE "%'.$_POST["search"]["value"].'%" ';
+			$sqlQuery .= ' OR department LIKE "%'.$_POST["search"]["value"].'%" ';
+			$sqlQuery .= ' OR status LIKE "%'.$_POST["search"]["value"].'%") ';					
 		}
-		if(!empty($_POST["order"])){
+		if(!empty($_POST["order"])) {
 			$sqlQuery .= ' ORDER BY '.$_POST['order']['0']['column'].' '.$_POST['order']['0']['dir'].' ';
 		} else {
 			$sqlQuery .= ' ORDER BY id DESC ';
 		}
-		if($_POST["length"] != -1){
+		if($_POST["length"] != -1) {
 			$sqlQuery .= ' LIMIT ' . $_POST['start'] . ', ' . $_POST['length'];
 		}	
 		
 		$result = mysqli_query($this->dbConnect, $sqlQuery);
 		$numRows = mysqli_num_rows($result);
 		$userData = array();	
-		while( $user = mysqli_fetch_assoc($result) ) {		
+		
+		while($user = mysqli_fetch_assoc($result)) {		
 			$userRows = array();			
 			$status = '';
-			if($user['status'] == 1)	{
+			if($user['status'] == 1) {
 				$status = '<span class="label label-success">Active</span>';
 			} else if($user['status'] == 0) {
 				$status = '<span class="label label-danger">Inactive</span>';
 			}	
 			
 			$userRole = '';
-			if($user['user_type'] == 'admin')	{
+			if($user['user_type'] == 'admin') {
 				$userRole = '<span class="label label-danger">Admin</span>';
 			} else if($user['user_type'] == 'user') {
 				$userRole = '<span class="label label-warning">Member</span>';
@@ -97,6 +103,7 @@ class Users extends Database {
 			$userRows[] = $user['id'];
 			$userRows[] = $user['name'];
 			$userRows[] = $user['email'];
+			$userRows[] = $user['department'];
 			$userRows[] = $user['create_date'];
 			$userRows[] = $userRole;			
 			$userRows[] = $status;
@@ -114,11 +121,10 @@ class Users extends Database {
 		echo json_encode($output);
 	}	
 	
-	
-	public function getUserDetails(){		
+	public function getUserDetails() {		
 		if($this->id) {		
 			$sqlQuery = "
-				SELECT id, name, email, password, create_date, user_type, status 
+				SELECT id, name, email, department, password, create_date, user_type, status 
 				FROM ".$this->userTable." 
 				WHERE id = '".$this->id."'";
 			$result = mysqli_query($this->dbConnect, $sqlQuery);	
@@ -126,14 +132,14 @@ class Users extends Database {
 			echo json_encode($row);
 		}		
 	}
-	
+
 	public function insert() {      
 		if($this->userName && $this->email) {		              
 			$this->userName = strip_tags($this->userName);			
 			$this->newPassword = md5($this->newPassword);			
 			$queryInsert = "
-				INSERT INTO ".$this->userTable."(name, email, user_type, status, password) VALUES(
-				'".$this->userName."', '".$this->email."', '".$this->role."','".$this->status."', '".$this->newPassword."')";				
+				INSERT INTO ".$this->userTable." (name, email, user_type, status, department, password) VALUES (
+				'".$this->userName."', '".$this->email."', '".$this->role."', '".$this->status."', '".$this->department."', '".$this->newPassword."')";
 			mysqli_query($this->dbConnect, $queryInsert);			
 		}
 	}	
@@ -150,7 +156,12 @@ class Users extends Database {
 			
 			$queryUpdate = "
 				UPDATE ".$this->userTable." 
-				SET name = '".$this->userName."', email = '".$this->email."', user_type = '".$this->role."', status = '".$this->status."' $changePassword
+				SET name = '".$this->userName."', 
+					email = '".$this->email."', 
+					user_type = '".$this->role."', 
+					status = '".$this->status."', 
+					department = '".$this->department."' 
+					$changePassword
 				WHERE id = '".$this->updateUserId."'";				
 			mysqli_query($this->dbConnect, $queryUpdate);			
 		}
@@ -164,5 +175,5 @@ class Users extends Database {
 			mysqli_query($this->dbConnect, $queryUpdate);			
 		}
 	}
-	
 }
+?>

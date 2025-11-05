@@ -16,6 +16,7 @@ if(!empty($_POST['action']) && $_POST['action'] == 'addUser') {
 	$users->role = $_POST["role"];
 	$users->newPassword = $_POST["newPassword"];
     $users->status = $_POST["status"];   
+    $users->department = $_POST["department"];   
 	$users->insert();
 }
 
@@ -26,6 +27,7 @@ if(!empty($_POST['action']) && $_POST['action'] == 'updateUser') {
 	$users->role = $_POST["role"];
 	$users->newPassword = $_POST["newPassword"];
     $users->status = $_POST["status"]; 
+    $users->department = $_POST["department"];
 	$users->update();
 }
 
@@ -33,5 +35,4 @@ if(!empty($_POST['action']) && $_POST['action'] == 'deleteUser') {
 	$users->deleteUserId = $_POST["userId"];
 	$users->delete();
 }
-
 ?>

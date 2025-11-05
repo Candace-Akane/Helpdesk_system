@@ -1,7 +1,7 @@
 <?php 
-include 'init.php'; 
-if(!$users->isLoggedIn()) {
-    header("Location: login.php");    
+include 'init.php';
+if (!$users->isLoggedIn()) {
+    header("Location: login.php");
 }
 include('inc/header.php');
 $user = $users->getUserInfo();
@@ -18,7 +18,7 @@ $user = $users->getUserInfo();
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <script src="js/jquery.dataTables.min.js"></script>
-<script src="js/dataTables.bootstrap.min.js"></script>		
+<script src="js/dataTables.bootstrap.min.js"></script>
 <link rel="stylesheet" href="css/dataTables.bootstrap.min.css" />
 <script src="js/general.js"></script>
 <script src="js/user.js"></script>
@@ -35,6 +35,7 @@ $user = $users->getUserInfo();
     position: sticky;
     top: 0;
     z-index: 1000;
+    overflow: visible;
 }
 .top-navbar .logo img {
     height: 80px;
@@ -42,6 +43,12 @@ $user = $users->getUserInfo();
 }
 .top-navbar .logo img:hover {
     transform: scale(1.05);
+}
+.top-navbar .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
 }
 .top-navbar .nav-right a,
 .top-navbar .nav-right .dropdown-toggle {
@@ -57,9 +64,25 @@ $user = $users->getUserInfo();
 .top-navbar .nav-right .dropdown-toggle:hover {
     color: #c8f7d6;
 }
-
+.dropdown-menu {
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    z-index: 2000 !important;
+    right: 0;
+    left: auto;
+}
+.dropdown-menu > li > a {
+    color: #333 !important;
+    font-size: 14px;
+    padding: 8px 15px;
+}
+.dropdown-menu > li > a:hover {
+    background-color: #f5f5f5;
+}
 body {
-    background-color: #ffffffff;
+    background-color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -72,7 +95,6 @@ body {
     padding: 20px 0;
     transition: all 0.3s ease;
 }
-
 #addUser {
     font-size: 13px;
     padding: 6px 14px;
@@ -87,7 +109,6 @@ body {
     background: #218838;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-
 #listUser {
     margin-top: 10px;
     border-radius: 8px;
@@ -115,7 +136,6 @@ body {
     background-color: #e9f5ef;
     transition: all 0.3s ease;
 }
-
 #listUser_wrapper .dataTables_filter input {
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -128,7 +148,6 @@ body {
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
     outline: none;
 }
-
 .modal-content {
     border-radius: 10px;
     border: none;
@@ -168,6 +187,12 @@ body {
     background: #c7c7c7;
 }
 </style>
+
+<script>
+jQuery(function($){
+    $('.dropdown-toggle').dropdown();
+});
+</script>
 </head>
 <body>
 
@@ -194,13 +219,14 @@ body {
         <thead>
             <tr>
                 <th>S/N</th>
-                <th>Name</th>					
+                <th>Name</th>
                 <th>Email</th>
                 <th>Created</th>
                 <th>Role</th>
                 <th>Status</th>
+                <th>Department</th>
                 <th></th>
-                <th></th>				
+                <th></th>
             </tr>
         </thead>
     </table>
@@ -216,30 +242,41 @@ body {
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="username" class="control-label">Name*</label>
-                            <input type="text" class="form-control" id="userName" name="userName" placeholder="User name" required>			
+                            <input type="text" class="form-control" id="userName" name="userName" placeholder="User name" required>
                         </div>
                         <div class="form-group">
                             <label for="email" class="control-label">Email*</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>			
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
                         </div>
                         <div class="form-group">
-                            <label for="role" class="control-label">Role</label>				
+                            <label for="role" class="control-label">Role</label>
                             <select id="role" name="role" class="form-control">
-                                <option value="admin">Admin</option>				
-                                <option value="user">Member</option>	
-                            </select>						
-                        </div>	
+                                <option value="admin">Admin</option>
+                                <option value="user">Member</option>
+                            </select>
+                        </div>
                         <div class="form-group">
-                            <label for="status" class="control-label">Status</label>				
+                            <label for="status" class="control-label">Status</label>
                             <select id="status" name="status" class="form-control">
-                                <option value="1">Active</option>				
-                                <option value="0">Inactive</option>	
-                            </select>						
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department" class="control-label">Department</label>
+                            <select id="department" name="department" class="form-control">
+                                <option value="">Select Department</option>
+                                <option value="IT Department">IT Department</option>
+                                <option value="HR Department">HR Department</option>
+                                <option value="Accounting Department">Accounting Department</option>
+                                <option value="NSO Department">NSO Department</option>
+                                <option value="HMO Department">HMO Department</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="newPassword" class="control-label">New Password</label>
-                            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Password">			
-                        </div>											
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Password">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <input type="hidden" name="userId" id="userId" />
